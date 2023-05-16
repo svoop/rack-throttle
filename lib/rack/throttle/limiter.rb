@@ -157,7 +157,14 @@ module Rack; module Throttle
     # @param  [Rack::Request] request
     # @return [String]
     def client_identifier(request)
-      request.ip.to_s
+      case
+      when ip = request.get_header('HTTP_CF_CONNECTING_IP')
+        ip
+      when forwarded_for = request.forwarded_for
+        forwarded_for.split(/\s*,\s*/).first&.sub(/:\d+$/, '')
+      else
+        request.ip
+      end.to_s
     end
 
     ##
